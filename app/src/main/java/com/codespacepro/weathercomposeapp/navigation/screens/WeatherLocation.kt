@@ -19,10 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.codespacepro.weathercomposeapp.R
 import com.codespacepro.weathercomposeapp.model.Weather
 
 
@@ -96,13 +99,20 @@ fun WeatherLocation(weather: Weather) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = Color.Black)
-                    .padding(top = 140.dp),
+                    .padding(top = 140.dp)
+                    .paint(
+                        painter = painterResource(id = R.drawable.world_map),
+//                        colorFilter = ColorFilter.tint(color = Color.LightGray, blendMode = BlendMode.Saturation),
+                        alpha = 0.3f
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context = context)
-                        .data("https:" + weather.current.condition.icon).crossfade(enable = true)
+                    model = ImageRequest
+                        .Builder(context = context)
+                        .data("https:" + weather.current.condition.icon)
+                        .crossfade(enable = true)
                         .build(),
                     contentDescription = "Null",
                     contentScale = ContentScale.Fit,
@@ -125,7 +135,7 @@ fun WeatherLocation(weather: Weather) {
                     fontSize = 100.sp
                 )
 
-                Spacer(modifier = Modifier.padding(top =80.dp))
+                Spacer(modifier = Modifier.padding(top = 80.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -160,7 +170,9 @@ fun WeatherLocation(weather: Weather) {
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "${weather.current.cloud}", color = Color.White, fontSize = 30.sp
+                            text = "${weather.current.cloud}",
+                            color = Color.White,
+                            fontSize = 30.sp
                         )
 
                     }
@@ -182,7 +194,7 @@ fun WeatherLocation(weather: Weather) {
 
                     }
                 }
-                Spacer(modifier = Modifier.padding(top = 40.dp))
+                Spacer(modifier = Modifier.padding(top = 20.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
