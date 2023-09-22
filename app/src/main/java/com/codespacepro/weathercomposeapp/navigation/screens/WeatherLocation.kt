@@ -13,10 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -39,6 +48,7 @@ import com.codespacepro.weathercomposeapp.R
 import com.codespacepro.weathercomposeapp.model.Weather
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherLocation(weather: Weather) {
     val context = LocalContext.current
@@ -62,7 +72,14 @@ fun WeatherLocation(weather: Weather) {
             )
         }
     }
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.onSurface)
+            .padding(top = 10.dp, end = 10.dp),
+        verticalArrangement = Arrangement.Center,
+
+        ) {
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -91,6 +108,25 @@ fun WeatherLocation(weather: Weather) {
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(text = text)
                 }
+
+            }
+            var visibility by remember {
+                mutableStateOf(false)
+            }
+            IconButton(onClick = { visibility = !visibility }) {
+
+                if (visibility) {
+                    Icon(
+                        imageVector = Icons.Filled.Close, contentDescription = null,
+                        tint = Color.White
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.Search, contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+
             }
 
         }
@@ -108,6 +144,7 @@ fun WeatherLocation(weather: Weather) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
+
                 AsyncImage(
                     model = ImageRequest
                         .Builder(context = context)
