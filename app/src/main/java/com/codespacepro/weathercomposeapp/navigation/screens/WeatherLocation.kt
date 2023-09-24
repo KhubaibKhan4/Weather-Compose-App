@@ -12,19 +12,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.sharp.ArrowDropDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +41,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,6 +56,12 @@ import com.codespacepro.weathercomposeapp.model.Weather
 @Composable
 fun WeatherLocation(weather: Weather) {
     val context = LocalContext.current
+
+
+    var isModalVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val text = buildAnnotatedString {
         withStyle(
             style = SpanStyle(
@@ -110,19 +120,17 @@ fun WeatherLocation(weather: Weather) {
                 }
 
             }
-            var visibility by remember {
-                mutableStateOf(false)
-            }
-            IconButton(onClick = { visibility = !visibility }) {
 
-                if (visibility) {
+            IconButton(onClick = { isModalVisible = !isModalVisible }) {
+
+                if (isModalVisible) {
                     Icon(
                         imageVector = Icons.Filled.Close, contentDescription = null,
                         tint = Color.White
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Filled.Search, contentDescription = null,
+                        imageVector = Icons.Sharp.ArrowDropDown, contentDescription = null,
                         tint = Color.White
                     )
                 }
@@ -291,13 +299,76 @@ fun WeatherLocation(weather: Weather) {
                     }
                 }
 
+
+                if (isModalVisible) {
+                    ModalBottomSheet(onDismissRequest = { isModalVisible = false }) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                text = "Current Weather",
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                textAlign = TextAlign.Center
+                            )
+
+                            TextWithLabel("Cloud:", "${weather.current.cloud}%")
+                            TextWithLabel(
+                                "Feels Like:",
+                                "${weather.current.feelslike_c}°C (${weather.current.feelslike_f}°F)"
+                            )
+                            TextWithLabel(
+                                "Gust:",
+                                "${weather.current.gust_kph} km/h (${weather.current.gust_mph} mph)"
+                            )
+                            TextWithLabel("Humidity:", "${weather.current.humidity}%")
+                            TextWithLabel("Is Day:", "${weather.current.is_day}")
+                            TextWithLabel("Last Updated:", weather.current.last_updated)
+                            TextWithLabel("Last Updated Epoch:", "${weather.current.last_updated_epoch}")
+                            TextWithLabel("Precipitation (in):", "${weather.current.precip_in}")
+                            TextWithLabel("Precipitation (mm):", "${weather.current.precip_mm}")
+                            TextWithLabel("Pressure (in):", "${weather.current.pressure_in}")
+                            TextWithLabel("Pressure (mb):", "${weather.current.pressure_mb}")
+                            TextWithLabel("UV:", "${weather.current.uv}")
+                            TextWithLabel("Visibility (km):", "${weather.current.vis_km}")
+                            TextWithLabel("Visibility (miles):", "${weather.current.vis_miles}")
+                            TextWithLabel("Wind Degree:", "${weather.current.wind_degree}")
+                            TextWithLabel("Wind Direction:", weather.current.wind_dir)
+                            TextWithLabel("Wind (kph):", "${weather.current.wind_kph}")
+                            TextWithLabel("Wind (mph):", "${weather.current.wind_mph}")
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
             }
+
+
         }
-
-
     }
 
 
+}
+
+@Composable
+fun TextWithLabel(label: String, value: String) {
+    Column(
+        modifier = Modifier.padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.Gray,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontSize = 16.sp,
+        )
+    }
 }
 
 

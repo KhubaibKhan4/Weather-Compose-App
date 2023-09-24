@@ -5,13 +5,25 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,8 +31,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -28,18 +43,26 @@ import com.codespacepro.weathercomposeapp.model.Weather
 import com.codespacepro.weathercomposeapp.navigation.screens.WeatherLocation
 import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.ui.theme.WeatherComposeAppTheme
+import com.codespacepro.weathercomposeapp.util.Constant.Companion.apiKey
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodelfactory.MainViewModelFactory
 
 class MainActivity : ComponentActivity() {
     lateinit var mainViewModel: MainViewModel
+
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
 
-            var text by rememberSaveable {
-                mutableStateOf("")
+            var searchText by rememberSaveable {
+                mutableStateOf("multan")
             }
+
+            var isSearchVisible by rememberSaveable {
+                mutableStateOf(false)
+            }
+
 
             var isLoading by remember {
                 mutableStateOf(true)
@@ -53,7 +76,7 @@ class MainActivity : ComponentActivity() {
             mainViewModel =
                 ViewModelProvider(this, mainViewModelFactory)[MainViewModel::class.java]
 
-            mainViewModel.getWeather("ddecfcfe887f4132882190209230309", "multan")
+            mainViewModel.getWeather(apiKey, searchText)
             mainViewModel.myResponse.observe(this, Observer { response ->
                 if (response.isSuccessful) {
 
@@ -83,6 +106,7 @@ class MainActivity : ComponentActivity() {
 
             WeatherComposeAppTheme {
 
+
                 if (isLoading) {
 
                     Box(
@@ -98,30 +122,68 @@ class MainActivity : ComponentActivity() {
 
 
                 } else if (weather != null) {
-                    weather?.let { WeatherLocation(weather = it) }
+                    Column {
+                        OutlinedTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = Color.Black),
+                            value = searchText,
+                            onValueChange = { searchText = it },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    mainViewModel.getWeather(
+                                        apiKey,
+                                        searchText
+                                    )
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Search,
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            label = { Text(text = "Search") },
+                            placeholder = { Text(text = "Search Location...") },
+                            interactionSource = MutableInteractionSource(),
+                            maxLines = 1,
+                            colors = TextFieldDefaults.colors(
+                                cursorColor = Color.White,
+                                focusedContainerColor = Color.Black,
+                                focusedTextColor = Color.White,
+                                unfocusedContainerColor = Color.Black,
+                                unfocusedLabelColor = Color.White,
+                                unfocusedIndicatorColor = Color.White,
+                                unfocusedPlaceholderColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                unfocusedTrailingIconColor = Color.White,
+                                unfocusedLeadingIconColor = Color.White,
+                                focusedTrailingIconColor = Color.White
+                            ),
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Characters,
+                                autoCorrect = true,
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Search
+                            ),
+                            keyboardActions = KeyboardActions(onSearch = {
+                                mainViewModel.getWeather(
+                                    apiKey,
+                                    searchText
+                                )
+                            })
+
+                        )
+                        weather?.let { WeatherLocation(weather = it) }
+                    }
                 } else {
                     Toast.makeText(context, "Failed to load Data..", Toast.LENGTH_SHORT)
                         .show()
                 }
+
+
                 //Bottom Navigation
 //                MainScreen()
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    WeatherComposeAppTheme {
-        Greeting("Android")
     }
 }
