@@ -6,14 +6,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,7 +19,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.getValue
@@ -33,9 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -48,7 +44,7 @@ import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodelfactory.MainViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    lateinit var mainViewModel: MainViewModel
+    private lateinit var mainViewModel: MainViewModel
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +62,13 @@ class MainActivity : ComponentActivity() {
 
             var isLoading by remember {
                 mutableStateOf(true)
+            }
+            var query by remember {
+                mutableStateOf("")
+            }
+
+            var isActive by remember {
+                mutableStateOf(false)
             }
             val context = LocalContext.current
             var weather by remember {
@@ -122,57 +125,45 @@ class MainActivity : ComponentActivity() {
 
 
                 } else if (weather != null) {
-                    Column {
-                        OutlinedTextField(
+                    Column(modifier = Modifier.background(color = Color.Black)) {
+
+                        SearchBar(
+                            query = query,
+                            onQueryChange = { query = it },
+                            onSearch = {
+                                mainViewModel.getWeather(apiKey, query)
+                                isActive=false
+                                       },
+                            active = isActive,
+                            onActiveChange = { isActive = !isActive },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(color = Color.Black),
-                            value = searchText,
-                            onValueChange = { searchText = it },
+                                .align(Alignment.CenterHorizontally)
+                                .padding(6.dp),
+                            colors = SearchBarDefaults.colors(
+                                containerColor = Color.DarkGray,
+                                dividerColor = Color.LightGray,
+                                inputFieldColors = TextFieldDefaults.textFieldColors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.LightGray
+                                )
+
+                            ),
+                            placeholder = { Text(text = "Search Place...", color = Color.White) },
                             trailingIcon = {
                                 IconButton(onClick = {
-                                    mainViewModel.getWeather(
-                                        apiKey,
-                                        searchText
-                                    )
+                                    mainViewModel.getWeather(apiKey, query)
+                                    isActive=false
                                 }) {
                                     Icon(
-                                        imageVector = Icons.Filled.Search,
-                                        contentDescription = null
+                                        imageVector = Icons.Default.Search, contentDescription = "",
+                                        tint = Color.White
                                     )
                                 }
                             },
-                            label = { Text(text = "Search") },
-                            placeholder = { Text(text = "Search Location...") },
-                            interactionSource = MutableInteractionSource(),
-                            maxLines = 1,
-                            colors = TextFieldDefaults.colors(
-                                cursorColor = Color.White,
-                                focusedContainerColor = Color.Black,
-                                focusedTextColor = Color.White,
-                                unfocusedContainerColor = Color.Black,
-                                unfocusedLabelColor = Color.White,
-                                unfocusedIndicatorColor = Color.White,
-                                unfocusedPlaceholderColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                unfocusedTrailingIconColor = Color.White,
-                                unfocusedLeadingIconColor = Color.White,
-                                focusedTrailingIconColor = Color.White
-                            ),
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.Characters,
-                                autoCorrect = true,
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Search
-                            ),
-                            keyboardActions = KeyboardActions(onSearch = {
-                                mainViewModel.getWeather(
-                                    apiKey,
-                                    searchText
-                                )
-                            })
-
-                        )
+                        ) {
+                            weather?.let { WeatherLocation(weather = it) }
+                        }
                         weather?.let { WeatherLocation(weather = it) }
                     }
                 } else {
