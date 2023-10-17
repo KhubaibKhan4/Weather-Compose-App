@@ -2,6 +2,7 @@ package com.codespacepro.weathercomposeapp.navigation.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,8 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +36,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import coil.compose.AsyncImage
@@ -43,6 +48,7 @@ import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -154,15 +160,123 @@ fun HomeScreen() {
                     fontWeight = FontWeight.SemiBold,
                 )
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "${data?.current?.feelslike_c}°",
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                fontSize = 56.sp,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "${data?.current?.condition?.text}",
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Light,
+                color = Color.White,
+                fontSize = 20.sp
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider(
+                modifier = Modifier.fillMaxWidth(0.95f),
+                color = Color.White,
+                thickness = 2.dp
+            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Send, contentDescription = "",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "${data?.current?.wind_kph} km/h Wind",
+                                textAlign = TextAlign.Center,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Send, contentDescription = "",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "${data?.current?.cloud}% Chances of Rain",
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Send, contentDescription = "",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "${data?.current?.pressure_mb} mbar",
+                                textAlign = TextAlign.Center,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                    Box {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Send, contentDescription = "",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "${data?.current?.humidity}%  Humidity",
+                                textAlign = TextAlign.Center,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+            }
+
         }
     }
 }
 
 fun convertDate(date: String): String {
     val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-    val outputFormat = SimpleDateFormat("MMM d", Locale.getDefault())
-    val parsedDate = inputFormat.parse(date)
-    return outputFormat.format(parsedDate)
+    val outputFormat = SimpleDateFormat(" MMM d", Locale.getDefault())
+    val inputDate: Date = inputFormat.parse(date)
+    return outputFormat.format(inputDate)
 }
 
 
