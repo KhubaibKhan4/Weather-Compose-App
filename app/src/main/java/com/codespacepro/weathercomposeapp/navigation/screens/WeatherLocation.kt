@@ -1,5 +1,7 @@
 package com.codespacepro.weathercomposeapp.navigation.screens
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,18 +50,56 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.codespacepro.weathercomposeapp.R
 import com.codespacepro.weathercomposeapp.model.Weather
+import com.codespacepro.weathercomposeapp.repository.Repository
+import com.codespacepro.weathercomposeapp.util.Constant.Companion.API_KEY
+import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeatherLocation(weather: Weather) {
+fun WeatherLocation() {
+    val repository = Repository()
+    val mainViewModel = MainViewModel(repository = repository)
+    val owner: LifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
+    var data by remember {
+        mutableStateOf<Weather?>(null)
+    }
 
+    try {
+        mainViewModel.getWeather(api = API_KEY, q = "multan")
+        mainViewModel.myResponse.observe(owner, Observer { response ->
+            if (response.isSuccessful) {
+                data = response.body()
+                Log.d("MainScreen", " ${response.body()}")
+
+            } else {
+                Log.d("MainScreen", " ${response.code()}")
+            }
+        })
+    } catch (e: Exception) {
+        Log.d("MainScreen", " ${e.printStackTrace()}")
+    }
+
+    data?.let { WeatherList(weather = it, context = context) }
+
+}
+
+@Composable
+fun WeatherList(weather: Weather, context: Context) {
+    WeatherItems(weather = weather, context = context)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WeatherItems(weather: Weather, context: Context) {
     var isModalVisible by rememberSaveable {
         mutableStateOf(false)
     }
@@ -327,7 +369,10 @@ fun WeatherLocation(weather: Weather) {
                             TextWithLabel("Humidity:", "${weather.current.humidity}%")
                             TextWithLabel("Is Day:", "${weather.current.is_day}")
                             TextWithLabel("Last Updated:", weather.current.last_updated)
-                            TextWithLabel("Last Updated Epoch:", "${weather.current.last_updated_epoch}")
+                            TextWithLabel(
+                                "Last Updated Epoch:",
+                                "${weather.current.last_updated_epoch}"
+                            )
                             TextWithLabel("Precipitation (in):", "${weather.current.precip_in}")
                             TextWithLabel("Precipitation (mm):", "${weather.current.precip_mm}")
                             TextWithLabel("Pressure (in):", "${weather.current.pressure_in}")
@@ -349,8 +394,6 @@ fun WeatherLocation(weather: Weather) {
 
         }
     }
-
-
 }
 
 @Composable
