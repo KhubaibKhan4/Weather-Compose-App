@@ -1,6 +1,11 @@
 package com.codespacepro.weathercomposeapp.navigation.screens
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,17 +17,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,12 +39,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +57,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.codespacepro.weathercomposeapp.R
 import com.codespacepro.weathercomposeapp.model.Weather
 import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
@@ -51,6 +66,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
 
@@ -62,7 +78,12 @@ fun HomeScreen() {
     var data by remember {
         mutableStateOf<Weather?>(null)
     }
-
+    var searchInput by remember {
+        mutableStateOf("")
+    }
+    var isVisible by remember {
+        mutableStateOf(false)
+    }
     try {
         mainViewModel.getWeather(api = Constant.API_KEY, q = "multan")
         mainViewModel.myResponse.observe(owner, Observer { response ->
@@ -94,7 +115,9 @@ fun HomeScreen() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                isVisible = !isVisible
+            }) {
                 Icon(
                     imageVector = Icons.Default.Search, contentDescription = "",
                     tint = Color.White
@@ -123,6 +146,45 @@ fun HomeScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkHorizontally()
+            ) {
+                TextField(
+                    value = searchInput,
+                    onValueChange = { searchInput = it },
+                    enabled = isVisible,
+                    label = { Text(text = "Location") },
+                    placeholder = { Text(text = "Search Location...") },
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Gray,
+                        unfocusedContainerColor = Color.LightGray,
+                        focusedContainerColor = Color.White,
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            mainViewModel.getWeather(api = Constant.API_KEY, q = searchInput)
+                        }) {
+                            Icon(imageVector = Icons.Default.Search, contentDescription = "")
+                        }
+                    },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        autoCorrect = true,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        mainViewModel.getWeather(api = Constant.API_KEY, q = searchInput)
+                    }),
+                    modifier = Modifier
+                        .fillMaxWidth(0.80f)
+                        .clip(shape = RoundedCornerShape(24.dp))
+                )
+            }
             AsyncImage(
                 model = ImageRequest
                     .Builder(context = context)
@@ -196,7 +258,8 @@ fun HomeScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Send, contentDescription = "",
+                                painter = painterResource(id = R.drawable.wind_power),
+                                contentDescription = "",
                                 tint = Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -214,7 +277,8 @@ fun HomeScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Send, contentDescription = "",
+                                painter = painterResource(id = R.drawable.cloud),
+                                contentDescription = "",
                                 tint = Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -237,7 +301,8 @@ fun HomeScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Send, contentDescription = "",
+                                painter = painterResource(id = R.drawable.pressure),
+                                contentDescription = "",
                                 tint = Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -254,7 +319,8 @@ fun HomeScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Send, contentDescription = "",
+                                painter = painterResource(id = R.drawable.humidity),
+                                contentDescription = "",
                                 tint = Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
