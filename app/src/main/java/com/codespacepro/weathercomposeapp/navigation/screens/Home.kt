@@ -65,6 +65,7 @@ import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -340,7 +341,7 @@ fun HomeScreen() {
             )
         ) {
             Text(
-                text = "${data?.current?.last_updated?.let { convertDate(it) }}",
+                text = "${data?.current?.last_updated?.let { convertDate(it) } ?: "${Date()}"}",
                 color = Color.White,
                 fontSize = MaterialTheme.typography.titleSmall.fontSize,
                 fontWeight = FontWeight.SemiBold,
