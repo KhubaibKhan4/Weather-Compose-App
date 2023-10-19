@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -63,7 +65,6 @@ import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,8 +106,7 @@ fun HomeScreen() {
             .padding(8.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0XFF1691c9))
-    )
-    {
+    ) {
 
         Row(
             modifier = Modifier
@@ -119,7 +119,8 @@ fun HomeScreen() {
                 isVisible = !isVisible
             }) {
                 Icon(
-                    imageVector = Icons.Default.Search, contentDescription = "",
+                    imageVector = if (isVisible) Icons.Default.Close else Icons.Default.Search,
+                    contentDescription = "",
                     tint = Color.White
                 )
             }
@@ -133,7 +134,8 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = { /*TODO*/ }) {
                 Icon(
-                    imageVector = Icons.Default.MoreVert, contentDescription = "",
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "",
                     tint = Color.White
                 )
             }
@@ -144,8 +146,7 @@ fun HomeScreen() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
+        ) {
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn() + expandVertically(),
@@ -186,10 +187,8 @@ fun HomeScreen() {
                 )
             }
             AsyncImage(
-                model = ImageRequest
-                    .Builder(context = context)
-                    .data("https:" + data?.current?.condition?.icon)
-                    .crossfade(enable = true)
+                model = ImageRequest.Builder(context = context)
+                    .data("https:" + data?.current?.condition?.icon).crossfade(enable = true)
                     .build(),
                 contentDescription = "Null",
                 contentScale = ContentScale.Fit,
@@ -201,20 +200,9 @@ fun HomeScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(
-                    8.dp,
-                    alignment = Alignment.CenterHorizontally
+                    8.dp, alignment = Alignment.CenterHorizontally
                 )
             ) {
-                Text(
-                    text = "${if (data?.current?.is_day == 0) "Night" else "Day"}",
-                    color = Color.White,
-                    fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = "|",
-                    color = Color.White,
-                )
                 Text(
                     text = "${data?.current?.last_updated?.let { convertDate(it) }}",
                     color = Color.White,
@@ -241,9 +229,7 @@ fun HomeScreen() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Divider(
-                modifier = Modifier.fillMaxWidth(0.95f),
-                color = Color.White,
-                thickness = 2.dp
+                modifier = Modifier.fillMaxWidth(0.95f), color = Color.White, thickness = 2.dp
             )
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -336,13 +322,43 @@ fun HomeScreen() {
 
         }
     }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 520.dp)
+            .background(color = Color(0XFF1691c9))
+            .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(
+                8.dp, alignment = Alignment.Start
+            )
+        ) {
+            Text(
+                text = "${data?.current?.last_updated?.let { convertDate(it) }}",
+                color = Color.White,
+                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
 }
 
 fun convertDate(date: String): String {
-    val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-    val outputFormat = SimpleDateFormat(" MMM d", Locale.getDefault())
-    val inputDate: Date = inputFormat.parse(date)
-    return outputFormat.format(inputDate)
+    val inputDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    val outputFormat = SimpleDateFormat("MMM d", Locale.getDefault())
+    val dateObject = inputDateFormat.parse(date)
+    val dayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+    val dayName = dayFormat.format(dateObject)
+    val monthName = outputFormat.format(dateObject)
+    return "$dayName | $monthName"
 }
+
+
 
 
