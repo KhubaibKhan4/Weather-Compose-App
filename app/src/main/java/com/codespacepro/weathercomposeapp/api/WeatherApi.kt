@@ -13,4 +13,9 @@ interface WeatherApi {
         @Query("q") q: String
     ): Response<Weather>
 
+    @GET("forecast.json")
+    suspend fun getForecast(
+        @Query("key") key: String,
+        @Query("q") q: String
+    ): Response<Weather>
 }

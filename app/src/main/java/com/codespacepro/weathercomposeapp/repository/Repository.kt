@@ -9,4 +9,8 @@ class Repository {
     suspend fun getWeather(api: String, q: String): Response<Weather> {
         return RetrofitInstance.api.getWeather(api, q)
     }
+
+    suspend fun getForecast(api: String, q: String): Response<Weather> {
+        return RetrofitInstance.api.getForecast(api, q)
+    }
 }

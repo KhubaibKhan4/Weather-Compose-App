@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -60,6 +61,7 @@ import androidx.lifecycle.Observer
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.codespacepro.weathercomposeapp.R
+import com.codespacepro.weathercomposeapp.component.ForecastList
 import com.codespacepro.weathercomposeapp.model.Weather
 import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
@@ -80,6 +82,9 @@ fun HomeScreen() {
     var data by remember {
         mutableStateOf<Weather?>(null)
     }
+    var foreCast by remember {
+        mutableStateOf<Weather?>(null)
+    }
     var searchInput by remember {
         mutableStateOf("")
     }
@@ -91,6 +96,17 @@ fun HomeScreen() {
         mainViewModel.myResponse.observe(owner, Observer { response ->
             if (response.isSuccessful) {
                 data = response.body()
+                Log.d("MainScreen", " ${response.body()}")
+
+            } else {
+                Log.d("MainScreen", " ${response.code()}")
+            }
+        })
+
+        mainViewModel.getForecast(api = Constant.API_KEY, q = "multan")
+        mainViewModel.myForecastResponse.observe(owner, Observer { response ->
+            if (response.isSuccessful) {
+                foreCast = response.body()
                 Log.d("MainScreen", " ${response.body()}")
 
             } else {
@@ -167,7 +183,7 @@ fun HomeScreen() {
                     ),
                     trailingIcon = {
                         IconButton(onClick = {
-                            mainViewModel.getWeather(api = Constant.API_KEY, q = searchInput)
+                            mainViewModel.getForecast(api = Constant.API_KEY, q = searchInput)
                         }) {
                             Icon(imageVector = Icons.Default.Search, contentDescription = "")
                         }
@@ -329,25 +345,49 @@ fun HomeScreen() {
             .padding(top = 520.dp)
             .background(color = Color(0XFF1691c9))
             .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start
     ) {
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(
-                8.dp, alignment = Alignment.Start
-            )
-        ) {
+        data?.current?.last_updated?.let { lastUpdated ->
             Text(
-                text = "${data?.current?.last_updated?.let { convertDate(it) } ?: "${Date()}"}",
+                text = convertDate(lastUpdated) ?: Date().toString(),
                 color = Color.White,
                 fontSize = MaterialTheme.typography.titleSmall.fontSize,
                 fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp),
+                textAlign = TextAlign.Start
             )
         }
+        foreCast?.forecast?.forecastday?.forEach { forecastDay ->
+            ForecastList(weather = forecastDay.hour)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(24.dp))
+                .background(color = Color.White),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Forecast for 7 Days ",
+                color = Color(0XFF1691c9),
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown, contentDescription = "",
+                    tint = Color(0XFF1691c9)
+                )
+            }
+        }
     }
+
 }
 
 fun convertDate(date: String): String {
