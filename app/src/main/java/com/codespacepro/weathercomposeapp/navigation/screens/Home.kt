@@ -1,6 +1,7 @@
 package com.codespacepro.weathercomposeapp.navigation.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -65,6 +66,7 @@ import com.codespacepro.weathercomposeapp.component.ForecastList
 import com.codespacepro.weathercomposeapp.model.Weather
 import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
+import com.codespacepro.weathercomposeapp.util.Constant.Companion.API_KEY
 import com.codespacepro.weathercomposeapp.viewmodels.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -183,7 +185,7 @@ fun HomeScreen() {
                     ),
                     trailingIcon = {
                         IconButton(onClick = {
-                            mainViewModel.getForecast(api = Constant.API_KEY, q = searchInput)
+                            mainViewModel.getWeather(api = API_KEY, q = searchInput)
                         }) {
                             Icon(imageVector = Icons.Default.Search, contentDescription = "")
                         }
@@ -196,7 +198,7 @@ fun HomeScreen() {
                         imeAction = ImeAction.Search
                     ),
                     keyboardActions = KeyboardActions(onSearch = {
-                        mainViewModel.getWeather(api = Constant.API_KEY, q = searchInput)
+                        mainViewModel.getWeather(api = API_KEY, q = searchInput)
                     }),
                     modifier = Modifier
                         .fillMaxWidth(0.80f)
@@ -379,7 +381,13 @@ fun HomeScreen() {
                 color = Color(0XFF1691c9),
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                Toast.makeText(
+                    context,
+                    "Api Subscription is require for 7 Days Forecast.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }) {
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown, contentDescription = "",
                     tint = Color(0XFF1691c9)

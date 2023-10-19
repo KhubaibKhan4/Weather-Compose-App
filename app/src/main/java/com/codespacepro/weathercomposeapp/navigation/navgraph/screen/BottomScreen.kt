@@ -1,9 +1,9 @@
 package com.codespacepro.weathercomposeapp.navigation.navgraph.screen
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomScreen(val route: String, val title: String, val icon: ImageVector) {
@@ -17,9 +17,9 @@ sealed class BottomScreen(val route: String, val title: String, val icon: ImageV
         title = "Weather",
         icon = Icons.Default.MailOutline
     )
-    object Search: BottomScreen(
-        route = "search",
-        title = "Search",
-        icon = Icons.Default.Search
+    object About: BottomScreen(
+        route = "about",
+        title = "About",
+        icon = Icons.Default.AccountBox
     )
 }
