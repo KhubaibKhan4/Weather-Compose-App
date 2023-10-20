@@ -1,7 +1,10 @@
 package com.codespacepro.weathercomposeapp.navigation.screens
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -29,6 +32,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +54,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -57,13 +63,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.codespacepro.weathercomposeapp.R
 import com.codespacepro.weathercomposeapp.component.ForecastList
 import com.codespacepro.weathercomposeapp.model.Weather
+import com.codespacepro.weathercomposeapp.navigation.navgraph.screen.BottomScreen
 import com.codespacepro.weathercomposeapp.repository.Repository
 import com.codespacepro.weathercomposeapp.util.Constant
 import com.codespacepro.weathercomposeapp.util.Constant.Companion.API_KEY
@@ -74,7 +83,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavHostController) {
 
     val repository = Repository()
     val mainViewModel = MainViewModel(repository = repository)
@@ -90,9 +99,17 @@ fun HomeScreen() {
     var searchInput by remember {
         mutableStateOf("")
     }
+    var foreCastExpanded by remember {
+        mutableStateOf(false)
+    }
     var isVisible by remember {
         mutableStateOf(false)
     }
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+    var subscriptionUri = "https://www.weatherapi.com/pricing.aspx"
+    val uriHandler = LocalUriHandler.current
     try {
         mainViewModel.getWeather(api = Constant.API_KEY, q = "multan")
         mainViewModel.myResponse.observe(owner, Observer { response ->
@@ -145,19 +162,45 @@ fun HomeScreen() {
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "${data?.location?.name ?: "Multan"}",
+                text = "${data?.location?.name ?: ""}",
                 color = Color.White,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                expanded = !expanded
+            }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "",
                     tint = Color.White
                 )
+                AnimatedVisibility(visible = expanded) {
+                    Box(
+                        contentAlignment = Alignment.TopEnd,
+                        propagateMinConstraints = true,
+                        modifier = Modifier.padding(top = 4.dp, end = 4.dp)
+                    ) {
+                        DropdownMenu(
+                            expanded = expanded, onDismissRequest = { expanded = false },
+                        ) {
+                            DropdownMenuItem(text = { Text(text = "Settings") }, onClick = {
+                                navController.navigate(BottomScreen.Setting.route)
+                            })
+                            Spacer(modifier = Modifier.height(4.dp))
+                            DropdownMenuItem(
+                                text = { Text(text = "Rate Us") },
+                                onClick = { openPlayStoreForRating(context) })
+                            Spacer(modifier = Modifier.height(4.dp))
+                            DropdownMenuItem(
+                                text = { Text(text = "Share") },
+                                onClick = { shareContent(context) })
+                        }
+                    }
+                }
             }
+
         }
         Column(
             modifier = Modifier
@@ -382,16 +425,19 @@ fun HomeScreen() {
                 fontWeight = FontWeight.Bold
             )
             IconButton(onClick = {
-                Toast.makeText(
-                    context,
-                    "Api Subscription is require for 7 Days Forecast.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                foreCastExpanded = !foreCastExpanded
             }) {
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown, contentDescription = "",
                     tint = Color(0XFF1691c9)
                 )
+                DropdownMenu(expanded = foreCastExpanded, onDismissRequest = {
+                    foreCastExpanded = false
+                }) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Purchase Subscription") },
+                        onClick = { uriHandler.openUri(subscriptionUri) })
+                }
             }
         }
     }
@@ -407,6 +453,34 @@ fun convertDate(date: String): String {
     val monthName = outputFormat.format(dateObject)
     return "$dayName | $monthName"
 }
+
+private fun openPlayStoreForRating(context: Context) {
+    val uri = Uri.parse("market://details?id=" + context.packageName)
+    val goToMarket = Intent(Intent.ACTION_VIEW, uri)
+    // To count with Play market backstack, After pressing back button,
+    // to taken back to our application, we need to add following flags to intent.
+    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+    try {
+        context.startActivity(goToMarket)
+    } catch (e: ActivityNotFoundException) {
+        context.startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("http://play.google.com/store/apps/details?id=" + context.packageName)
+            )
+        )
+    }
+}
+
+private fun shareContent(context: Context) {
+    val shareIntent = Intent(Intent.ACTION_SEND)
+    shareIntent.type = "text/plain"
+    val shareMessage = "Check out this awesome app!"
+    shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
+    startActivity(context, Intent.createChooser(shareIntent, "Share via"), null)
+}
+
+
 
 
 

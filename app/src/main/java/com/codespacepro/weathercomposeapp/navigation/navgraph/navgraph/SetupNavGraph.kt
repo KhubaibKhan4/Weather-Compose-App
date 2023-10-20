@@ -1,5 +1,6 @@
 package com.codespacepro.weathercomposeapp.navigation.navgraph.navgraph
 
+import SettingsScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,7 +14,7 @@ import com.codespacepro.weathercomposeapp.navigation.screens.WeatherLocation
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = BottomScreen.Home.route) {
         composable(route = BottomScreen.Home.route) {
-            HomeScreen()
+            HomeScreen(navController)
         }
 
         composable(route = BottomScreen.Weather.route) {
@@ -21,6 +22,10 @@ fun SetupNavGraph(navController: NavHostController) {
         }
         composable(BottomScreen.About.route) {
             AboutScreen()
+        }
+
+        composable(BottomScreen.Setting.route) {
+            SettingsScreen(navController)
         }
     }
 

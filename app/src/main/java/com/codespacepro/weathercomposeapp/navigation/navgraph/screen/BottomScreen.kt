@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomScreen(val route: String, val title: String, val icon: ImageVector) {
@@ -21,5 +22,11 @@ sealed class BottomScreen(val route: String, val title: String, val icon: ImageV
         route = "about",
         title = "About",
         icon = Icons.Default.AccountBox
+    )
+
+    object Setting: BottomScreen(
+        route = "setting",
+        title = "Setting",
+        icon = Icons.Default.Settings
     )
 }
